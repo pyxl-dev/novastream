@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="NovaStream">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8b6cf6"/>
+      <stop offset="1" stop-color="#4a2fb0"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <!-- cloud: the S3 archive -->
+  <path d="M150 236a62 62 0 0 1 58-82 84 84 0 0 1 158 26 54 54 0 0 1-6 108H160a54 54 0 0 1-10-52z" fill="#fff" opacity=".55"/>
+  <!-- local cache: the disk under the cloud -->
+  <rect x="136" y="332" width="240" height="56" rx="20" fill="#fff" opacity=".55"/>
+  <!-- play button: streaming from both -->
+  <circle cx="256" cy="268" r="74" fill="#fff"/>
+  <path d="M234 230v76l64-38z" fill="#4a2fb0"/>
+</svg>
