@@ -7,7 +7,8 @@
 //   bun scripts/public-guard.ts tree            tous les fichiers suivis (CI)
 //   bun scripts/public-guard.ts text            texte lu sur stdin
 //   bun scripts/public-guard.ts claude-hook     hook PreToolUse de Claude Code : texte des commandes gh pr|issue
-// Réglages du dépôt : .public-guard.json { "project": "nom", "publicRoot": "sha du premier commit public" }.
+// Réglages du dépôt : .public-guard.json { "project": "nom", "publicRoot": "sha du premier commit public",
+//   "allow": ["expressions déjà publiques par décision"] }.
 // Motifs : génériques ci-dessous (publics), plus ceux propres à une installation, jamais dans le dépôt :
 //   ~/.config/public-guard/forbidden.txt (communs à tous les projets) et ~/.config/<project>/forbidden.txt,
 //   une expression régulière par ligne. Sortie 1 (2 pour claude-hook) au moindre motif trouvé.
@@ -24,7 +25,7 @@ const TOP = (() => {
     return process.cwd();
   }
 })();
-const CONF: { project?: string; publicRoot?: string } = (() => {
+const CONF: { project?: string; publicRoot?: string; allow?: string[] } = (() => {
   try {
     return JSON.parse(readFileSync(join(TOP, ".public-guard.json"), "utf8"));
   } catch {
@@ -65,10 +66,15 @@ function rules(): Rule[] {
 const ALLOW = "public-guard: ok";
 
 type Hit = { where: string; rule: string; line: string };
+// Chaînes déjà publiques par décision (ex. identifiant d'application), retirées avant le scan : listées dans
+// .public-guard.json, donc visibles et relues dans chaque PR.
+const ALLOWED = (CONF.allow ?? []).map((a) => new RegExp(a, "g"));
 export function scan(lines: { where: string; text: string }[], rs = rules()): Hit[] {
   const hits: Hit[] = [];
-  for (const { where, text } of lines)
-    for (const r of rs) if (r.re.test(text) && (r.local || !text.includes(ALLOW))) hits.push({ where, rule: r.name, line: text.trim().slice(0, 120) });
+  for (const { where, text: raw } of lines) {
+    const text = ALLOWED.reduce((t, re) => t.replace(re, ""), raw);
+    for (const r of rs) if (r.re.test(text) && (r.local || !text.includes(ALLOW))) hits.push({ where, rule: r.name, line: raw.trim().slice(0, 120) });
+  }
   return hits;
 }
 
